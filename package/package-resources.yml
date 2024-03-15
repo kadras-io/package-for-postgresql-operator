@@ -33,6 +33,7 @@ metadata:
 spec:
   categories:
   - database
+  - data
   displayName: postgresql-operator
   longDescription: CloudNativePG is a Kubernetes operator that covers the full lifecycle
     of a PostgreSQL database cluster with a primary/standby architecture, using native
