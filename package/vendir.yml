@@ -1,0 +1,13 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - githubRelease:
+      disableAutoChecksumValidation: true
+      slug: cloudnative-pg/cloudnative-pg
+      tag: v1.22.2
+    includePaths:
+    - cnpg-*.yaml
+    path: .
+  path: config/upstream
+kind: Config
+minimumRequiredVersion: ""

@@ -1,0 +1,26 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pg-cluster-1
+  namespace: tests
+status:
+  phase: Running
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pg-cluster-2
+  namespace: tests
+status:
+  phase: Running
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pg-cluster-3
+  namespace: tests
+status:
+  phase: Running
