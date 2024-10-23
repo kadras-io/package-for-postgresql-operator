@@ -2,8 +2,8 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - githubRelease:
-      tag: v1.24.0
-      url: https://api.github.com/repos/cloudnative-pg/cloudnative-pg/releases/171484641
+      tag: v1.24.1
+      url: https://api.github.com/repos/cloudnative-pg/cloudnative-pg/releases/180268743
     path: .
   path: config/upstream
 kind: LockConfig
