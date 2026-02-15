@@ -4,7 +4,7 @@ directories:
   - githubRelease:
       disableAutoChecksumValidation: true
       slug: cloudnative-pg/cloudnative-pg
-      tag: v1.28.0
+      tag: v1.28.1
     includePaths:
     - cnpg-*.yaml
     path: .
