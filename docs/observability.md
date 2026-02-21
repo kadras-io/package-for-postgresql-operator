@@ -12,3 +12,5 @@ If you'd like to remove the Prometheus annotations and therefore disable automat
 prometheus:
   enabled: false
 ```
+
+For more information, check the CloudNativePG documentation for [metrics](https://cloudnative-pg.io/docs/1.28/monitoring).
