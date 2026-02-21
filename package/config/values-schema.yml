@@ -1,0 +1,8 @@
+#@data/values-schema
+
+---
+
+#@schema/desc "Settings for Prometheus metrics."
+prometheus:
+  #@schema/desc "Whether to enable Prometheus annotations for automatic scraping of PostgreSQL Operator metrics."
+  enabled: true

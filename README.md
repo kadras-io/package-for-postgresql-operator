@@ -69,6 +69,39 @@ Verify the installed packages and their status:
 Documentation, tutorials and examples for this package are available in the [docs](docs) folder.
 For documentation specific to CloudNativePG, check out [cloudnative-pg.io/docs](https://cloudnative-pg.io/docs/).
 
+## 🎯&nbsp; Configuration
+
+The PostgreSQL Operator package can be customized via a `values.yml` file.
+
+```yaml
+prometheus:
+  enabled: true
+```
+
+Reference the `values.yml` file from the `kctrl` command when installing or upgrading the package.
+
+```shell
+kctrl package install -i postgresql-operator \
+  -p postgresql-operator.packages.kadras.io \
+  -v ${VERSION} \
+  -n kadras-system \
+  --values-file values.yml
+```
+
+### Values
+
+The PostgreSQL Operator package has the following configurable properties.
+
+<details><summary>Configurable properties</summary>
+
+Settings for Prometheus metrics.
+
+| Config | Default | Description |
+|-------|---------|-------------|
+| `prometheus.enabled` | `true` | Whether to enable Prometheus annotations for automatic scraping of PostgreSQL Operator metrics. |
+
+</details>
+
 ## 🛡️&nbsp; Security
 
 The security process for reporting vulnerabilities is described in [SECURITY.md](SECURITY.md).
