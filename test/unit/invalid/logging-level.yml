@@ -1,5 +1,5 @@
-# expected: one of ["error", "warning", "info", "debug", "trace"]
+# expected: one of ["error", "warn", "info", "debug", "trace"]
 ---
 observability:
   logging:
-    level: warn
+    level: warning

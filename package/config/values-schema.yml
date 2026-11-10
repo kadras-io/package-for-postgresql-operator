@@ -56,7 +56,7 @@ upgrades:
 observability:
   logging:
     #@schema/desc "The log level of the operator. The logs are always in JSON format."
-    #@schema/validation one_of=["error", "warning", "info", "debug", "trace"]
+    #@schema/validation one_of=["error", "warn", "info", "debug", "trace"]
     level: info
   metrics:
     #@schema/desc "Whether to annotate the operator Pods for Prometheus scraping. The operator always exposes metrics on port 8080 (`/metrics`)."

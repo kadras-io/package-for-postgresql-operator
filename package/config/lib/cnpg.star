@@ -59,9 +59,12 @@ end
 # FLAGS
 # ###########
 
+# The log levels of the package, aligned with the other Kadras packages, and their CloudNativePG values.
+_log_levels = {"error": "error", "warn": "warning", "info": "info", "debug": "debug", "trace": "trace"}
+
 # The flags computed from the package values. `args` is merged on top of them.
 def operator_args():
-  args = {"log-level": data.values.observability.logging.level}
+  args = {"log-level": _log_levels[data.values.observability.logging.level]}
   for name, value in struct.decode(data.values.args).items():
     args[name.lstrip("-")] = value
   end

@@ -2,7 +2,7 @@
 
 ## Logs
 
-The operator writes its logs in JSON format. The log level is one of `error`, `warning`, `info`, `debug`, `trace`.
+The operator writes its logs in JSON format. The log level is one of `error`, `warn`, `info`, `debug`, `trace`.
 
 ```yaml
 observability:

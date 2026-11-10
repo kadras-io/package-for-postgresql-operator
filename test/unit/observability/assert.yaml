@@ -9,4 +9,4 @@ spec:
       (annotations."prometheus.io/port" == null): true
     spec:
       (containers[?name == 'manager'] | [0]):
-        (args[?starts_with(@, '--log-level=')]): [--log-level=debug]
+        (args[?starts_with(@, '--log-level=')]): [--log-level=warning]
