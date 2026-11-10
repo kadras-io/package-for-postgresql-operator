@@ -1,0 +1,21 @@
+---
+args:
+  max-concurrent-reconciles: 20
+  --log-field-timestamp: timestamp
+  # A computed flag can be overridden.
+  log-level: trace
+config:
+  CREATE_ANY_SERVICE: true
+  KUBERNETES_CLUSTER_DOMAIN: example.local
+  # A computed option can be overridden, or removed.
+  CLUSTERS_ROLLOUT_DELAY: 30
+  PULL_SECRET_NAME: null
+inherited_annotations:
+- categories
+- example.com/*
+inherited_labels:
+- app
+- environment
+upgrades:
+  instances_rollout_delay: 10
+  in_place_updates: true

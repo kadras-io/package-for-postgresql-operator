@@ -1,9 +1,9 @@
 ---
+# A PostgreSQL cluster with a primary and two standby instances, in the namespace of the test.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: pg-cluster
-  namespace: tests
 spec:
   instances: 3
   storage:

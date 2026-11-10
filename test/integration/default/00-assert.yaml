@@ -1,13 +1,19 @@
-# Controllers
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: cnpg-controller-manager
   namespace: cnpg-system
 status:
   readyReplicas: 1
-
-# Image Pull Secret
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cnpg-controller-manager-config
+  namespace: cnpg-system
+data:
+  PULL_SECRET_NAME: canonical-registry-credentials
 ---
 apiVersion: v1
 kind: Secret
@@ -23,6 +29,7 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: cnpg-controller-manager
   namespace: cnpg-system
 spec:
   template:

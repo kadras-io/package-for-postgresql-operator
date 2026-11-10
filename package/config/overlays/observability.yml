@@ -1,0 +1,23 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+#@ load("/lib/cnpg.star", "deployment")
+
+#! The operator exposes metrics in the Prometheus format on port 8080 (`/metrics`).
+#! The log level is set via flags (see lib/cnpg.star).
+#! See: https://cloudnative-pg.io/docs/1.30/monitoring#monitoring-the-operator
+
+#@ if data.values.observability.metrics.enabled:
+#@overlay/match by=overlay.subset({"kind":"Deployment", "metadata":{"name":deployment}})
+---
+spec:
+  template:
+    metadata:
+      #@overlay/match missing_ok=True
+      annotations:
+        #@overlay/match missing_ok=True
+        prometheus.io/scrape: "true"
+        #@overlay/match missing_ok=True
+        prometheus.io/port: "8080"
+        #@overlay/match missing_ok=True
+        prometheus.io/path: /metrics
+#@ end

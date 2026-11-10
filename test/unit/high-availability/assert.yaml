@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cnpg-controller-manager
+spec:
+  replicas: 3
+  template:
+    spec:
+      (containers[?name == 'manager'] | [0]):
+        # The standby replicas wait for the leader election.
+        (contains(args, '--leader-elect')): true
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cnpg-controller-manager
+  namespace: cnpg-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cloudnative-pg

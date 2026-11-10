@@ -1,0 +1,12 @@
+---
+# The admission webhooks are served from the custom namespace, and the Cluster labels listed in the configuration are inherited.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-single
+  labels:
+    environment: test
+spec:
+  instances: 1
+  storage:
+    size: 500Mi

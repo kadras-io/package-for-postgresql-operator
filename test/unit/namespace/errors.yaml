@@ -1,0 +1,30 @@
+# No resource left in the upstream namespace.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cnpg-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: cnpg-system
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: cnpg-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: cnpg-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: cnpg-system
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: cnpg-system

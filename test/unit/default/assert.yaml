@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cnpg-system
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+  annotations:
+    # Uninstalling the package keeps the namespace, and installing it again adopts it.
+    kapp.k14s.io/delete-strategy: orphan
+    kapp.k14s.io/create-strategy: fallback-on-update
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clusters.postgresql.cnpg.io
+  annotations:
+    # Deleting the CRDs would delete all the PostgreSQL clusters and their data.
+    kapp.k14s.io/delete-strategy: orphan
+    kapp.k14s.io/create-strategy: fallback-on-update
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: backups.postgresql.cnpg.io
+  annotations:
+    kapp.k14s.io/delete-strategy: orphan
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cnpg-controller-manager-config
+  namespace: cnpg-system
+  annotations:
+    kapp.k14s.io/change-group: postgresql-operator.packages.kadras.io/config
+data:
+  PULL_SECRET_NAME: canonical-registry-credentials
+  CLUSTERS_ROLLOUT_DELAY: "0"
+  INSTANCES_ROLLOUT_DELAY: "0"
+  ENABLE_INSTANCE_MANAGER_INPLACE_UPDATES: "false"
+  (INHERITED_ANNOTATIONS == null): true
+  (INHERITED_LABELS == null): true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cnpg-controller-manager
+  namespace: cnpg-system
+  annotations:
+    kapp.k14s.io/change-rule: upsert after upserting postgresql-operator.packages.kadras.io/config
+spec:
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: /metrics
+        (length("kadras.io/config-checksum")): 64
+    spec:
+      imagePullSecrets:
+      - name: canonical-registry-credentials
+      (containers[?name == 'manager'] | [0]):
+        imagePullPolicy: IfNotPresent
+        args:
+        - controller
+        - --leader-elect
+        - --max-concurrent-reconciles=10
+        - --config-map-name=cnpg-controller-manager-config
+        - --secret-name=cnpg-controller-manager-config
+        - --webhook-port=9443
+        - --log-level=info
+        (env[?name == 'OPERATOR_IMAGE_NAME'] | [0].value): ghcr.io/cloudnative-pg/cloudnative-pg:1.30.1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cnpg-webhook-service
+  namespace: cnpg-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cnpg-default-monitoring
+  namespace: cnpg-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cnpg-manager-rolebinding
+subjects:
+- kind: ServiceAccount
+  name: cnpg-manager
+  namespace: cnpg-system
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: cnpg-mutating-webhook-configuration
+(webhooks[?clientConfig.service.namespace != 'cnpg-system'] | length(@)): 0
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: cnpg-validating-webhook-configuration
+(webhooks[?clientConfig.service.namespace != 'cnpg-system'] | length(@)): 0
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: canonical-registry-credentials
+  namespace: cnpg-system
+  annotations:
+    secretgen.carvel.dev/image-pull-secret: ""
+type: kubernetes.io/dockerconfigjson

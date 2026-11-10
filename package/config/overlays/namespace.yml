@@ -1,0 +1,35 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#! The operator runs in the package namespace. It reads it from the `OPERATOR_NAMESPACE` environment variable,
+#! but the upstream manifest references it in the ClusterRoleBinding and in the admission webhooks.
+
+#@ upstream = "cnpg-system"
+#@ namespace = data.values.namespace
+
+#@overlay/match by=overlay.subset({"kind":"Namespace", "metadata":{"name":upstream}})
+---
+metadata:
+  name: #@ namespace
+
+#@overlay/match by=overlay.subset({"metadata":{"namespace":upstream}}), expects="1+"
+---
+metadata:
+  namespace: #@ namespace
+
+#@overlay/match by=overlay.subset({"kind":"ClusterRoleBinding"}), expects="1+"
+---
+subjects:
+#@overlay/match by=overlay.subset({"kind":"ServiceAccount"}), expects="1+"
+- namespace: #@ namespace
+
+#@ mutating_webhooks = overlay.subset({"kind":"MutatingWebhookConfiguration"})
+#@ validating_webhooks = overlay.subset({"kind":"ValidatingWebhookConfiguration"})
+
+#@overlay/match by=overlay.or_op(mutating_webhooks, validating_webhooks), expects=2
+---
+webhooks:
+#@overlay/match by=overlay.all, expects="1+"
+- clientConfig:
+    service:
+      namespace: #@ namespace

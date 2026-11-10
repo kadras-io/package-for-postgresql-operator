@@ -1,0 +1,15 @@
+---
+# The operator is deployed in a custom namespace, with a standby replica.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cnpg-controller-manager
+  namespace: databases
+status:
+  readyReplicas: 2
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cnpg-controller-manager
+  namespace: databases

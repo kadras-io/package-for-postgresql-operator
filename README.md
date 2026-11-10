@@ -8,6 +8,13 @@
 
 A Carvel package for [CloudNativePG](https://cloudnative-pg.io), a Kubernetes operator that covers the full lifecycle of a PostgreSQL database cluster with a primary/standby architecture, using native streaming replication.
 
+## ✨&nbsp; What's Included
+
+* **PostgreSQL operator**. The CloudNativePG operator and its admission webhooks, configured via the package values, with optional standby replicas for high availability.
+* **Safe lifecycle**. Uninstalling the package keeps the CloudNativePG CRDs, so the PostgreSQL clusters and their data survive it. Upgrades of the PostgreSQL clusters after an operator upgrade can be spread over time, or done in place.
+* **Observability**. Structured JSON logs, and metrics annotated for Prometheus scraping.
+* **Security**. The operator complies with the `restricted` [Pod Security Standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/), enforced on its namespace. Private registries are supported for both the operator and the PostgreSQL instances.
+
 ## 🚀&nbsp; Getting Started
 
 ### Prerequisites
@@ -16,66 +23,112 @@ A Carvel package for [CloudNativePG](https://cloudnative-pg.io), a Kubernetes op
 * Carvel [`kctrl`](https://carvel.dev/kapp-controller/docs/latest/install/#installing-kapp-controller-cli-kctrl) CLI.
 * Carvel [kapp-controller](https://carvel.dev/kapp-controller) deployed in your Kubernetes cluster. You can install it with Carvel [`kapp`](https://carvel.dev/kapp/docs/latest/install) (recommended choice) or `kubectl`.
 
-  ```shell
-  kapp deploy -a kapp-controller -y \
-    -f https://github.com/carvel-dev/kapp-controller/releases/latest/download/release.yml
-  ```
+```shell
+kapp deploy -a kapp-controller -y \
+  -f https://github.com/carvel-dev/kapp-controller/releases/latest/download/release.yml
+```
+
+### Dependencies
+
+The PostgreSQL Operator has no required dependencies. To authenticate with private registries, install [secretgen-controller](https://github.com/kadras-io/package-for-secretgen-controller) from the [Kadras package repository](https://github.com/kadras-io/kadras-packages).
 
 ### Installation
 
 Add the Kadras [package repository](https://github.com/kadras-io/kadras-packages) to your Kubernetes cluster:
 
-  ```shell
-  kctrl package repository add -r kadras-packages \
-    --url ghcr.io/kadras-io/kadras-packages \
-    -n kadras-system --create-namespace
-  ```
+```shell
+kctrl package repository add -r kadras-packages \
+  --url ghcr.io/kadras-io/kadras-packages \
+  -n kadras-system --create-namespace
+```
 
 <details><summary>Installation without package repository</summary>
 The recommended way of installing the PostgreSQL Operator package is via the Kadras <a href="https://github.com/kadras-io/kadras-packages">package repository</a>. If you prefer not using the repository, you can add the package definition directly using <a href="https://carvel.dev/kapp/docs/latest/install"><code>kapp</code></a> or <code>kubectl</code>.
 
-  ```shell
-  kubectl create namespace kadras-system
-  kapp deploy -a postgresql-operator-package -n kadras-system -y \
-    -f https://github.com/kadras-io/package-for-postgresql-operator/releases/latest/download/metadata.yml \
-    -f https://github.com/kadras-io/package-for-postgresql-operator/releases/latest/download/package.yml
-  ```
+```shell
+kubectl create namespace kadras-system
+kapp deploy -a postgresql-operator-package -n kadras-system -y \
+  -f https://github.com/kadras-io/package-for-postgresql-operator/releases/latest/download/metadata.yml \
+  -f https://github.com/kadras-io/package-for-postgresql-operator/releases/latest/download/package.yml
+```
 </details>
 
 Install the PostgreSQL Operator package:
 
-  ```shell
-  kctrl package install -i postgresql-operator \
-    -p postgresql-operator.packages.kadras.io \
-    -v ${VERSION} \
-    -n kadras-system
-  ```
+```shell
+kctrl package install -i postgresql-operator \
+  -p postgresql-operator.packages.kadras.io \
+  -v ${VERSION} \
+  -n kadras-system
+```
 
 > **Note**
 > You can find the `${VERSION}` value by retrieving the list of package versions available in the Kadras package repository installed on your cluster.
 > 
->   ```shell
->   kctrl package available list -p postgresql-operator.packages.kadras.io -n kadras-system
->   ```
+> ```shell
+> kctrl package available list -p postgresql-operator.packages.kadras.io -n kadras-system
+> ```
 
 Verify the installed packages and their status:
 
-  ```shell
-  kctrl package installed list -n kadras-system
-  ```
+```shell
+kctrl package installed list -n kadras-system
+```
+
+### Try It Out
+
+Create a PostgreSQL cluster with a primary and two standby instances:
+
+```shell
+kubectl apply -f - <<EOF
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-cluster
+  namespace: default
+spec:
+  instances: 3
+  storage:
+    size: 1Gi
+EOF
+```
+
+Wait for the cluster to be ready, then connect to the application database with the credentials generated by the operator:
+
+```shell
+kubectl wait cluster/pg-cluster -n default --for=condition=Ready --timeout=5m
+kubectl exec -it pg-cluster-1 -n default -c postgres -- psql -d app
+```
+
+Applications connect to the primary via the `pg-cluster-rw` Service, with the credentials in the `pg-cluster-app` Secret. See [quickstart](https://cloudnative-pg.io/docs/1.30/quickstart).
 
 ## 📙&nbsp; Documentation
 
 Documentation, tutorials and examples for this package are available in the [docs](docs) folder.
 For documentation specific to CloudNativePG, check out [cloudnative-pg.io/docs](https://cloudnative-pg.io/docs/).
 
+Features:
+
+* [High availability](docs/high-availability.md)
+* [Observability](docs/observability.md)
+* [Security](docs/security.md)
+
+Operations:
+
+* [Configuration and ytt overlays](docs/configuration.md)
+* [Upgrading and uninstalling](docs/upgrade.md)
+* [Verifying the release](docs/verify-release.md)
+
 ## 🎯&nbsp; Configuration
 
 The PostgreSQL Operator package can be customized via a `values.yml` file.
 
 ```yaml
-prometheus:
-  enabled: true
+replicas: 2
+inherited_labels:
+  - app.kubernetes.io/part-of
+upgrades:
+  in_place_updates: true
 ```
 
 Reference the `values.yml` file from the `kctrl` command when installing or upgrading the package.
@@ -88,19 +141,54 @@ kctrl package install -i postgresql-operator \
   --values-file values.yml
 ```
 
+The operator configuration and flags can be customized beyond the values, as well as any resource via ytt overlays. See [configuration.md](docs/configuration.md).
+
 ### Values
 
 The PostgreSQL Operator package has the following configurable properties.
 
 <details><summary>Configurable properties</summary>
 
-Settings for Prometheus metrics.
+<!-- values-table:start -->
 
 | Config | Default | Description |
-|-------|---------|-------------|
-| `prometheus.enabled` | `true` | Whether to enable Prometheus annotations for automatic scraping of PostgreSQL Operator metrics. |
+|--------|---------|-------------|
+| `namespace` | `"cnpg-system"` | The namespace in which to deploy the CloudNativePG operator. |
+| `replicas` | `1` | The number of operator replicas. Additional replicas are standby via leader election, and all of them serve the admission webhooks. With more than 1 replica, a PodDisruptionBudget is created. |
+| `args` | `{}` | Container flags, merged on top of the ones computed by the package. Set a flag to null to remove it. See https://cloudnative-pg.io/docs/1.30/operator_conf. |
+| `config` | `{}` | Operator configuration, merged on top of the one computed by the package. Set an option to null to remove it. See https://cloudnative-pg.io/docs/1.30/operator_conf#available-options. |
+| `inherited_annotations` | `[]` | Names of the annotations that, when set on a Cluster, are inherited by all the resources generated for it, including the Pods. Wildcards like `example.com/*` are supported. |
+| `inherited_labels` | `[]` | Names of the labels that, when set on a Cluster, are inherited by all the resources generated for it, including the Pods. Wildcards like `example.com/*` are supported. |
+| `upgrades.clusters_rollout_delay` | `0` | Seconds to wait between the rollouts of different PostgreSQL clusters. |
+| `upgrades.instances_rollout_delay` | `0` | Seconds to wait between the rollouts of the instances of the same PostgreSQL cluster. |
+| `upgrades.in_place_updates` | `false` | Whether to update the instance manager in place after an operator upgrade, without restarting the PostgreSQL instances. |
+| `observability.logging.level` | `"info"` | The log level of the operator. The logs are always in JSON format. |
+| `observability.metrics.enabled` | `true` | Whether to annotate the operator Pods for Prometheus scraping. The operator always exposes metrics on port 8080 (`/metrics`). |
+
+<!-- values-table:end -->
 
 </details>
+
+## 🛠️&nbsp; Development
+
+The development environment is defined with [devenv](https://devenv.sh). Enter it with `devenv shell`, or automatically with [direnv](https://direnv.net) after running `direnv allow`. Run `task --list` to see all the available tasks.
+
+```shell
+# Run the unit tests, which render the package and check the result without a cluster.
+task test:config
+
+# Create a local kind cluster and run the integration tests on it.
+task cluster:setup
+task test:integration
+
+# Deploy the package from the local sources to the current cluster.
+task dev
+
+# Update the table of configurable values in this README after changing the values schema.
+task docs:values
+```
+
+The unit tests are described in [test/unit/README.md](test/unit/README.md).
 
 ## 🛡️&nbsp; Security
 

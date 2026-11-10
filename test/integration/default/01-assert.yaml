@@ -1,26 +1,21 @@
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
 metadata:
-  name: pg-cluster-1
-  namespace: tests
+  name: pg-cluster
 status:
-  phase: Running
-
+  instances: 3
+  readyInstances: 3
+  phase: Cluster in healthy state
+---
+# The operator copied its image pull secret to the namespace of the Cluster.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-cluster-pull
+type: kubernetes.io/dockerconfigjson
 ---
 apiVersion: v1
-kind: Pod
+kind: Secret
 metadata:
-  name: pg-cluster-2
-  namespace: tests
-status:
-  phase: Running
-
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: pg-cluster-3
-  namespace: tests
-status:
-  phase: Running
+  name: pg-cluster-app
