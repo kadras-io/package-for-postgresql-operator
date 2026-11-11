@@ -19,3 +19,12 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: pg-cluster-app
+---
+# The `edit` role manages the PostgreSQL clusters, and only reads the resources managed by the operator.
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+commands:
+  - script: test "$(kubectl auth can-i create clusters.postgresql.cnpg.io -n $NAMESPACE --as=developer)" = yes
+  - script: test "$(kubectl auth can-i delete scheduledbackups.postgresql.cnpg.io -n $NAMESPACE --as=developer)" = yes
+  - script: test "$(kubectl auth can-i list failoverquorums.postgresql.cnpg.io -n $NAMESPACE --as=developer)" = yes
+  - script: test "$(kubectl auth can-i create failoverquorums.postgresql.cnpg.io -n $NAMESPACE --as=developer)" = no

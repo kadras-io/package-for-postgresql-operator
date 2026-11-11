@@ -8,3 +8,17 @@ spec:
   instances: 3
   storage:
     size: 500Mi
+---
+# A user with the `edit` role in the namespace, to check the permissions added to the default roles.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: developer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: developer

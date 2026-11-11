@@ -14,6 +14,7 @@ A Carvel package for [CloudNativePG](https://cloudnative-pg.io), a Kubernetes op
 * **Safe lifecycle**. Uninstalling the package keeps the CloudNativePG CRDs, so the PostgreSQL clusters and their data survive it. Upgrades of the PostgreSQL clusters after an operator upgrade can be spread over time, or done in place.
 * **Observability**. Structured JSON logs, and metrics annotated for Prometheus scraping.
 * **Security**. The operator complies with the `restricted` [Pod Security Standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/), enforced on its namespace. Private registries are supported for both the operator and the PostgreSQL instances.
+* **Access**. The Kubernetes default roles are extended with the CloudNativePG resources: `edit` and `admin` manage the PostgreSQL clusters of a namespace, with their databases, backups, and poolers, while `view` reads them. See [docs/rbac.md](docs/rbac.md).
 
 ## 🚀&nbsp; Getting Started
 
@@ -112,6 +113,7 @@ Features:
 * [High availability](docs/high-availability.md)
 * [Observability](docs/observability.md)
 * [Security](docs/security.md)
+* [Access to the resources](docs/rbac.md)
 
 Operations:
 
